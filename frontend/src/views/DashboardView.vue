@@ -71,7 +71,7 @@
             <ul v-if="rec.summaryReasons.length" class="dash-reasons">
               <li v-for="(r, i) in rec.summaryReasons.slice(0, 2)" :key="i">{{ r }}</li>
             </ul>
-            <p v-if="rec.quoteCount > 1" class="dash-count">共 {{ rec.quoteCount }} 家报价对比</p>
+            <p v-if="rec.quoteCount > 1" class="dash-count">{{ rec.quoteCount }} 家参与推荐对比{{ rec.totalQuoteCount && rec.totalQuoteCount !== rec.quoteCount ? ` / 共 ${rec.totalQuoteCount} 条报价` : '' }}</p>
           </div>
         </article>
       </div>

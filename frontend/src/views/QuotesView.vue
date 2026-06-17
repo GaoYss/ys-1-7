@@ -106,7 +106,7 @@
           <div class="recommend-header">
             <div>
               <strong>{{ rec.ingredientName }}</strong>
-              <small style="color:#6b786f;margin-left:6px;">（{{ rec.quoteCount }} 家报价）</small>
+              <small style="color:#6b786f;margin-left:6px;">（{{ rec.quoteCount }} 家参与推荐 / 共 {{ rec.totalQuoteCount }} 条报价）</small>
             </div>
             <span class="badge success">推荐</span>
           </div>
@@ -168,7 +168,7 @@
           <div v-else class="recommend-empty">暂无启用报价</div>
 
           <details v-if="rec.quotes.length > 1" class="compare-details">
-            <summary>查看全部 {{ rec.quotes.length }} 家报价对比</summary>
+            <summary>查看全部 {{ rec.quotes.length }} 家报价对比（含停用）</summary>
             <table class="compare-table">
               <thead>
                 <tr>
@@ -178,19 +178,39 @@
                   <th>评级</th>
                   <th>交付</th>
                   <th>评分</th>
+                  <th>状态</th>
                   <th>分析</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(q, idx) in rec.quotes" :key="q.id" :class="{ 'is-best': idx === 0 }">
-                  <td><strong v-if="idx === 0" class="rank-best">第1</strong><span v-else>第{{ idx + 1 }}</span></td>
-                  <td>{{ q.supplierName }}</td>
+                <tr v-for="(q, idx) in rec.quotes" :key="q.id" :class="{ 'is-best': !q.excluded && idx === 0, 'is-excluded': q.excluded }">
+                  <td>
+                    <template v-if="!q.excluded">
+                      <strong v-if="idx === 0" class="rank-best">第1</strong>
+                      <span v-else>第{{ idx + 1 }}</span>
+                    </template>
+                    <span v-else class="excluded-mark">—</span>
+                  </td>
+                  <td>
+                    {{ q.supplierName }}
+                    <span v-if="q.excluded" class="excluded-label">（不参与推荐）</span>
+                  </td>
                   <td>¥{{ q.unitPrice.toFixed(2) }}</td>
-                  <td>{{ '★'.repeat(q.supplierRating || 0) }}</td>
+                  <td>{{ '★'.repeat(q.supplierRating || 0) }}{{ '☆'.repeat(5 - (q.supplierRating || 0)) }}</td>
                   <td>{{ q.deliveryDays }}天</td>
-                  <td><strong>{{ q.score }}</strong></td>
+                  <td>
+                    <strong v-if="!q.excluded">{{ q.score }}</strong>
+                    <span v-else class="excluded-score">—</span>
+                  </td>
+                  <td>
+                    <span v-if="q.excluded" class="badge danger">{{ q.excludeReason || '不参与推荐' }}</span>
+                    <span v-else class="badge success">参与推荐</span>
+                  </td>
                   <td style="font-size:12px;white-space:normal;max-width:220px;">
-                    <span v-for="(r, i) in q.reasons" :key="i" class="mini-tag">{{ r }}</span>
+                    <template v-if="!q.excluded">
+                      <span v-for="(r, i) in q.reasons" :key="i" class="mini-tag">{{ r }}</span>
+                    </template>
+                    <span v-else class="excluded-tip">{{ q.excludeReason || '该报价未启用，不参与评分排序' }}</span>
                   </td>
                 </tr>
               </tbody>
@@ -469,5 +489,38 @@ onMounted(async () => {
   border-radius: 4px;
   margin: 2px;
   color: #526057;
+}
+
+.compare-table .is-excluded {
+  background: #f8f5f2;
+  opacity: 0.85;
+}
+
+.compare-table .is-excluded td {
+  color: #8a7b6f;
+}
+
+.excluded-mark {
+  color: #a72f25;
+  font-weight: 600;
+}
+
+.excluded-label {
+  color: #a72f25;
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.excluded-score {
+  color: #a72f25;
+}
+
+.excluded-tip {
+  display: inline-block;
+  color: #a72f25;
+  background: #ffe4e2;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
 }
 </style>
