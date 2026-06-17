@@ -43,24 +43,61 @@
         </DataTable>
       </section>
     </div>
+
+    <section class="panel" style="margin-top:18px;">
+      <div class="recommend-title-bar">
+        <h2 style="margin:0;">原料比价推荐摘要</h2>
+        <router-link to="/quotes" class="secondary-btn" style="text-decoration:none;">查看完整比价 →</router-link>
+      </div>
+      <div v-if="!recommendations.length" class="recommend-empty">
+        正在加载推荐数据，或前往「供应商比价」查看详细信息。
+      </div>
+      <div v-else class="dash-rec-grid">
+        <article v-for="rec in recommendations" :key="rec.ingredientId" class="dash-rec-card" @click="goQuotes">
+          <div class="dash-rec-head">
+            <strong>{{ rec.ingredientName }}</strong>
+            <span class="badge success">推荐</span>
+          </div>
+          <div v-if="rec.recommended" class="dash-rec-body">
+            <div class="dash-rec-row">
+              <span>{{ rec.recommended.supplierName }}</span>
+              <strong class="dash-price">¥{{ rec.recommended.unitPrice.toFixed(2) }}</strong>
+            </div>
+            <div class="dash-rec-row dash-meta">
+              <span>{{ '★'.repeat(rec.recommended.supplierRating || 0) }}</span>
+              <span>{{ rec.recommended.deliveryDays }}天交付</span>
+              <span>评分 {{ rec.recommended.score }}</span>
+            </div>
+            <ul v-if="rec.summaryReasons.length" class="dash-reasons">
+              <li v-for="(r, i) in rec.summaryReasons.slice(0, 2)" :key="i">{{ r }}</li>
+            </ul>
+            <p v-if="rec.quoteCount > 1" class="dash-count">共 {{ rec.quoteCount }} 家报价对比</p>
+          </div>
+        </article>
+      </div>
+    </section>
   </section>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import { inventoryApi } from '../api/inventory'
 import { ordersApi } from '../api/orders'
 import { suppliersApi } from '../api/suppliers'
+import { quotesApi } from '../api/quotes'
 import DataTable from '../components/DataTable.vue'
 import PageHeader from '../components/PageHeader.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import { statusText } from '../utils/format'
 
+const router = useRouter()
 const summary = ref({ ingredientCount: 0, warningCount: 0, totalStock: 0 })
 const inventory = ref([])
 const orders = ref([])
 const suppliers = ref([])
+const recommendations = ref([])
 
 const warningItems = computed(() => inventory.value.filter((item) => item.warning))
 const warningColumns = [
@@ -75,16 +112,104 @@ const orderColumns = [
   { key: 'totalAmount', label: '金额' }
 ]
 
+function goQuotes() {
+  router.push('/quotes')
+}
+
 onMounted(async () => {
-  const [summaryRes, inventoryRes, ordersRes, suppliersRes] = await Promise.all([
+  const [summaryRes, inventoryRes, ordersRes, suppliersRes, recRes] = await Promise.all([
     inventoryApi.summary(),
     inventoryApi.list(),
     ordersApi.list(),
-    suppliersApi.list()
+    suppliersApi.list(),
+    quotesApi.recommend().catch(() => ({ data: [] }))
   ])
   summary.value = summaryRes.data
   inventory.value = inventoryRes.data
   orders.value = ordersRes.data
   suppliers.value = suppliersRes.data
+  recommendations.value = recRes.data || []
 })
 </script>
+
+<style scoped>
+.recommend-title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.dash-rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.dash-rec-card {
+  border: 1px solid #dde5dc;
+  border-radius: 8px;
+  background: #fff;
+  padding: 14px;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+}
+
+.dash-rec-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(22, 54, 37, .08);
+}
+
+.dash-rec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.dash-rec-body { display: grid; gap: 6px; }
+
+.dash-rec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.dash-price {
+  color: #256f4a;
+  font-size: 16px;
+}
+
+.dash-meta {
+  color: #6b786f;
+  font-size: 12px;
+}
+
+.dash-reasons {
+  margin: 6px 0 0;
+  padding: 8px 10px 8px 24px;
+  background: #fff7e6;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #815a00;
+}
+
+.dash-reasons li { margin: 1px 0; }
+
+.dash-count {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #6b786f;
+}
+
+.recommend-empty {
+  padding: 20px;
+  color: #7d8981;
+  text-align: center;
+  background: #f6f8f4;
+  border-radius: 8px;
+}
+</style>

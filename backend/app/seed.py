@@ -1,7 +1,7 @@
 from datetime import date
 
 from .extensions import db
-from .models import Ingredient, PurchaseOrder, PurchaseOrderItem, StockRecord, Supplier
+from .models import Ingredient, PurchaseOrder, PurchaseOrderItem, StockRecord, Supplier, SupplierQuote
 
 
 def seed_data():
@@ -120,4 +120,93 @@ def seed_data():
             ),
         ]
     )
+
+    quotes = [
+        SupplierQuote(
+            ingredient_id=ingredients[0].id,
+            supplier_id=suppliers[0].id,
+            unit_price=46,
+            delivery_days=2,
+            status="active",
+        ),
+        SupplierQuote(
+            ingredient_id=ingredients[0].id,
+            supplier_id=suppliers[1].id,
+            unit_price=50,
+            delivery_days=3,
+            status="active",
+        ),
+        SupplierQuote(
+            ingredient_id=ingredients[0].id,
+            supplier_id=suppliers[2].id,
+            unit_price=44,
+            delivery_days=5,
+            status="active",
+        ),
+        SupplierQuote(
+            ingredient_id=ingredients[1].id,
+            supplier_id=suppliers[0].id,
+            unit_price=52,
+            delivery_days=2,
+            status="active",
+        ),
+        SupplierQuote(
+            ingredient_id=ingredients[1].id,
+            supplier_id=suppliers[1].id,
+            unit_price=55,
+            delivery_days=3,
+            status="active",
+        ),
+        SupplierQuote(
+            ingredient_id=ingredients[2].id,
+            supplier_id=suppliers[1].id,
+            unit_price=12,
+            delivery_days=1,
+            status="active",
+        ),
+        SupplierQuote(
+            ingredient_id=ingredients[2].id,
+            supplier_id=suppliers[2].id,
+            unit_price=11.5,
+            delivery_days=4,
+            status="active",
+        ),
+        SupplierQuote(
+            ingredient_id=ingredients[3].id,
+            supplier_id=suppliers[0].id,
+            unit_price=28,
+            delivery_days=3,
+            status="active",
+        ),
+        SupplierQuote(
+            ingredient_id=ingredients[3].id,
+            supplier_id=suppliers[1].id,
+            unit_price=25,
+            delivery_days=2,
+            status="active",
+        ),
+        SupplierQuote(
+            ingredient_id=ingredients[3].id,
+            supplier_id=suppliers[2].id,
+            unit_price=30,
+            delivery_days=5,
+            status="inactive",
+        ),
+        SupplierQuote(
+            ingredient_id=ingredients[4].id,
+            supplier_id=suppliers[2].id,
+            unit_price=68,
+            delivery_days=2,
+            status="active",
+        ),
+        SupplierQuote(
+            ingredient_id=ingredients[4].id,
+            supplier_id=suppliers[0].id,
+            unit_price=72,
+            delivery_days=3,
+            status="active",
+        ),
+    ]
+    db.session.add_all(quotes)
+
     db.session.commit()

@@ -9,5 +9,8 @@ export const suppliersApi = {
   },
   update(id, payload) {
     return http.put(`/suppliers/${id}`, payload)
+  },
+  remove(id) {
+    return http.delete(`/suppliers/${id}`)
   }
 }
