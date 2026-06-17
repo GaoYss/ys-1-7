@@ -106,7 +106,7 @@
           <div class="recommend-header">
             <div>
               <strong>{{ rec.ingredientName }}</strong>
-              <small style="color:#6b786f;margin-left:6px;">（{{ rec.quoteCount }} 家参与推荐 / 共 {{ rec.totalQuoteCount }} 条报价）</small>
+              <small style="color:#6b786f;margin-left:6px;">（{{ quoteCountText(rec) }}）</small>
             </div>
             <span class="badge success">推荐</span>
           </div>
@@ -168,7 +168,7 @@
           <div v-else class="recommend-empty">暂无启用报价</div>
 
           <details v-if="rec.quotes.length > 1" class="compare-details">
-            <summary>查看全部 {{ rec.quotes.length }} 家报价对比（含停用）</summary>
+            <summary>查看全部 {{ rec.quotes.length }} 家报价对比{{ hasExcluded(rec) ? '（含停用）' : '' }}</summary>
             <table class="compare-table">
               <thead>
                 <tr>
@@ -265,6 +265,17 @@ const filteredQuotes = computed(() => {
   if (filterSupplierId.value) list = list.filter((q) => q.supplierId === filterSupplierId.value)
   return list
 })
+
+function hasExcluded(rec) {
+  return rec.quotes && rec.quotes.some((q) => q.excluded)
+}
+
+function quoteCountText(rec) {
+  if (!rec.totalQuoteCount || rec.quoteCount === rec.totalQuoteCount) {
+    return `${rec.quoteCount} 家报价`
+  }
+  return `${rec.quoteCount} 家参与推荐 / 共 ${rec.totalQuoteCount} 条报价`
+}
 
 function resetForm() {
   editingQuoteId.value = null
